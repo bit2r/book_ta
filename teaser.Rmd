@@ -1,0 +1,114 @@
+---
+output:
+  html_document:
+    theme:
+      version: 4
+editor_options: 
+  chunk_output_type: console
+---
+
+``` {r setup, include=FALSE}
+source("_common.R")
+```
+
+# 맛보기 {#teaser}
+
+
+```{r president-speech}
+library(tidyverse)
+library(tidytext)
+# # remotes::install_github("IshidaMotohiro/RMeCab")
+# library(RMeCab)
+# remotes::install_github("bit2r/bitTA")
+library(bitTA)
+
+bitTA::morpho_mecab("아버지가 방에 들어가신다.")
+
+bitTA::morpho_mecab(x = "公式ではなくいわゆる野良ビルドです")
+
+```
+
+
+# 대통령 취임사
+
+
+```{r}
+library(tidyverse)
+library(glue)
+
+yoon_raw <- readr::read_lines("data/취임사_윤석열.txt")
+
+yoon_raw
+
+yoon_txt <- glue::glue("{yoon_raw}", collapse = " ")
+
+yoon_txt
+
+make_comp <- function(first, second) {
+  file1 <- tempfile() 
+  writeLines(get_const(first), con = file1)
+  file2 <- tempfile() 
+  writeLines(get_const(second), con = file2)
+  diffr(file1, file2, before = glue("헌법: 제", first, "호"), after = glue("헌법: 제", second, "호"))
+}
+
+```
+
+
+```{r}
+library(glue)
+library(crayon)
+
+words <- "자유"
+smpl_text <- "번영과 풍요, 경제적 성장은 바로 자유의 확대입니다."
+
+
+glue::glue_col("번영과 풍요, 경제적 성장은 바로 {blue 자유}의 확대입니다.")
+
+
+color_text <- function(word) {
+  glue::glue_col("번영과 풍요, 경제적 성장은 바로 {red !!word}의 확대입니다.")
+}
+
+color_text("하늘")
+
+color_text <- function(word) {
+  glue::glue_col("번영과 풍요, 경제적 성장은 바로 {red {word}}의 확대입니다.")
+}
+
+color_text("하늘")
+
+
+yoon_crayon <- str_replace_all(yoon_txt, "자유", "{red 자유}")
+
+glue::glue("{yoon_crayon}", collapse = " ") %>% 
+  write_lines("data/yoon_freedom.txt")
+
+yoon_crayon_raw <- read_lines("data/yoon_freedom.txt")
+
+glue::glue_col("{yoon_crayon_raw}")
+
+glue_col("저는 {red 자유}, 인권, 공정, 연대의 가치를 기반으로 국민이 진정한 주인인 나라, 국제사회에서 책임을 다하고 존경받는 나라를 위대한 국민 여러분과 함께 반드시 만들어 나가겠습니다.")
+
+
+glue::glue_col(deparse(yoon_crayon_raw[[114]]))
+
+crayon_words <- function(input_text, word = "자유") {
+  
+  replaced_text <- str_replace_all(input_text, word, "{red {word}}")
+  
+  output_text <- glue::glue("{replaced_text}", collapse = " ")
+  
+  crayon_text <- glue::glue_col(deparse(output_text[[1]]))
+  
+  return(crayon_text)
+}
+
+crayon_words(input_text = yoon_txt, "자유")
+
+
+
+```
+
+
+
